@@ -85,7 +85,7 @@ const libroPost = async (req = request, res = response) => {
     //Se guarda el archivo 
     const nombre = await subirArchivo(req.files);
     li.archivo = nombre;
-    
+
     //Se salva en la base de datos el libro
     await li.save();
     const libro = await Libro.findById(li._id).populate('autor', 'nombre apellidos');
@@ -158,7 +158,7 @@ const libroDelete = async (req = request, res = response) => {
             msg: 'EL id no existe'
         });
     }
-    
+
     //Se compruena que el libro le pertenece al usuario
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({

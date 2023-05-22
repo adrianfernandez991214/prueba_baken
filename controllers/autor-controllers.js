@@ -1,6 +1,5 @@
 const express = require('express');
 const { response, request } = require('express');
-const Bcryptjs = require('bcryptjs');
 const Autor = require('../database/autor');
 
 //Devuelve todos los autores 
@@ -28,7 +27,7 @@ const autorGet_LosMios = async (req = request, res = response) => {
     const query = { usuario: req.usuario._id };
     const { desde = 0, limite = 0 } = req.query;
 
-    
+
     const [total, autores] = await Promise.all([
         Autor.countDocuments(query),
         Autor.find(query)
@@ -47,7 +46,7 @@ const autorGet_LosMios = async (req = request, res = response) => {
 const autorGetUno = async (req = request, res = response) => {
 
     const { id } = req.params;
-    
+
     //Compueba que existe el autor
     const autor = await Autor.findById(id);
     if (!autor) {
@@ -70,7 +69,7 @@ const autorPost = async (req = request, res = response) => {
     const { nombre, apellidos, correo, orcid } = req.body;
     const usuario = req.usuario._id;
     const autor = Autor({ nombre, apellidos, correo, orcid, usuario });
-    
+
     //comprueba que el correo no exista en la base de datos, ya que 
     //debe ser unico
     const existeEmail = await Autor.findOne({ correo });
@@ -108,7 +107,7 @@ const autorPut = async (req = request, res = response) => {
             msg: 'EL id no existe'
         });
     }
-    
+
     //Se comprueba que el autor le pertenece al usuario  
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({
@@ -126,7 +125,7 @@ const autorPut = async (req = request, res = response) => {
             msg: 'Ese correo ya esta registrado'
         });
     }
-    
+
     //Se modifica el autor
     const autor = await Autor.findByIdAndUpdate(id, resto, { new: true });
 
@@ -152,7 +151,7 @@ const autorDelete = async (req = request, res = response) => {
             msg: 'EL id no existe'
         });
     }
-    
+
     //Se comprueba que el autor le pertenece al usuario  
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({

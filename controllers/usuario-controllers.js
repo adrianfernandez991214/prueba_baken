@@ -57,6 +57,14 @@ const usuarioPost = async (req = request, res = response) => {
         });
     }
 
+    //Con este controller no se permite crear administradores
+    if (rol == 'ADMIN_ROLE') {
+        return res.status(400).json({
+            ok: false,
+            msg: 'No se puden crear por este metodo usuarios de rol ADMIN_ROLE'
+        });
+    }
+
     //Incriptar las contraseña
     const salt = Bcryptjs.genSaltSync();
     usuario.password = Bcryptjs.hashSync(password, salt);

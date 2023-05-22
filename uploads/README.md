@@ -1,0 +1,1 @@
+# uploads - > carpeta donde van a guardar los archivos

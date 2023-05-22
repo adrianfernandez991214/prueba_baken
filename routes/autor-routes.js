@@ -26,7 +26,7 @@ router.post('/', [
     check('nombre', 'El nombre es obligatorio').not().isEmpty(),
     check('apellidos', 'Los apellidos son obligatorios').not().isEmpty(),
     check('correo', 'El correo es obligatorio').isEmail(),
-    check('orcid', 'El ORCID debe ser de 6 o más caracteres').isLength({ min: 6 }),
+    check('orcid', 'El ORCID debe ser de 6 o más caracteres').not().isEmpty(),
     validarJWT,
     validarCampos
 ], autorPost);
@@ -38,7 +38,7 @@ router.put('/:id', [
     check('apellidos', 'Los apellidos son obligatorios').not().isEmpty(),
     check('nombre', 'El nombre es obligatorio').not().isEmpty(),
     check('correo', 'El correo es obligatorio').isEmail(),
-    check('orcid', 'El ORCID debe ser de 6 o más caracteres').isLength({ min: 6 }),
+    check('orcid', 'El ORCID debe ser de 6 o más caracteres').not().isEmpty(),
     validarJWT,
     validarCampos
 ], autorPut);

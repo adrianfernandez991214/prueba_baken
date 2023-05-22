@@ -3,7 +3,7 @@ const { response, request } = require('express');
 const Bcryptjs = require('bcryptjs');
 const Usuario = require('../database/usuario');
 
-
+//Devuelve todos los usuarios
 const usuarioGet = async (req = request, res = response) => {
 
     const { desde = 0, limite = 5 } = req.query;
@@ -22,17 +22,11 @@ const usuarioGet = async (req = request, res = response) => {
     })
 };
 
+//Devuelve un usuario por el id
 const usuarioGetUno = async (req = request, res = response) => {
 
     const { id } = req.params;
     const { usuario } = req;
-
-    if ((id != usuario._id) && (usuario.rol != 'ADMIN_ROLE')) {
-        return res.status(400).json({
-            ok: false,
-            msg: 'Usted no tiene acceso a la información de este usuario'
-        });
-    }
 
     const usuario_res = await Usuario.findById(id);
     if (!usuario_res) {
@@ -48,11 +42,13 @@ const usuarioGetUno = async (req = request, res = response) => {
     })
 };
 
+//Crear un nuevo usuario 
 const usuarioPost = async (req = request, res = response) => {
 
     const { nombre, apellidos, correo, password, rol } = req.body;
     const usuario = Usuario({ nombre, apellidos, correo, password, rol });
 
+    //Se comprueba que el correo no existe
     const existeEmail = await Usuario.findOne({ correo });
     if (existeEmail) {
         return res.status(400).json({
@@ -74,6 +70,7 @@ const usuarioPost = async (req = request, res = response) => {
 
 };
 
+//Modificar un usuario por el id
 const usuarioPut = async (req = request, res = response) => {
 
     //resivir y estructural datos
@@ -81,7 +78,8 @@ const usuarioPut = async (req = request, res = response) => {
     const { _id, password, ...resto } = req.body;
     const { usuario } = req;
     const { correo } = req.body;
-
+    
+    //Solo podra ser modificado por un admin o por el mismo
     if ((id != usuario._id) && (usuario.rol != 'ADMIN_ROLE')) {
         return res.status(400).json({
             ok: false,
@@ -89,7 +87,7 @@ const usuarioPut = async (req = request, res = response) => {
         });
     }
 
-    //Verificar si el id existe
+    //Verificar si el usuario existe
     const existeID = await Usuario.findById(id);
     if (!existeID) {
         return res.status(400).json({
@@ -98,6 +96,7 @@ const usuarioPut = async (req = request, res = response) => {
         });
     }
 
+    //se verifica que el correo no este en otro usurios de la base de datos
     const existeEmail = await Usuario.findOne({ correo });
     if (existeEmail && (existeEmail.correo != existeID.correo)) {
         return res.status(400).json({
@@ -106,13 +105,13 @@ const usuarioPut = async (req = request, res = response) => {
         });
     }
 
-    //validar contra base de datos
     if (password) {
         //Encriptar la contraseña
         const salt = Bcryptjs.genSaltSync();
         resto.password = Bcryptjs.hashSync(password, salt);
     }
 
+    //Guardar cambios
     const usuario_res = await Usuario.findByIdAndUpdate(id, resto, { new: true });
 
     res.status(201).json({
@@ -121,11 +120,13 @@ const usuarioPut = async (req = request, res = response) => {
     });
 };
 
+//Elimar un usuario por el id
 const usuarioDelete = async (req = request, res = response) => {
 
     const { id } = req.params;
     const { usuario } = req;
-
+    
+    //Solo podra ser eliminado por un admin o por el mismo
     if ((id != usuario._id) && (usuario.rol != 'ADMIN_ROLE')) {
         return res.status(400).json({
             ok: false,
@@ -133,7 +134,7 @@ const usuarioDelete = async (req = request, res = response) => {
         });
     }
 
-    //compruevo si el id existe
+    //compruevo si el usuario existe
     const existeID = await Usuario.findById(id);
     if (!existeID) {
         return res.status(400).json({

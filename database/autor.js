@@ -1,5 +1,8 @@
 const { Schema, model } = require('mongoose');
 
+//Los libros poseen nombre, apellidos, correo(unico), orcid('El orcid es uno de los mas conocidos 
+//identificadores universales de autores'), y usuario al que pertenece -> relacionado por el 
+//id del usuario
 const AutorSchema = Schema({
     nombre: {
         type: String,

@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator');
 
-
+//Se validar si existen errores en la validación de la request 
 const validarCampos = ( req, res, next ) => {
 
     const errors = validationResult(req);

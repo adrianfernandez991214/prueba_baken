@@ -3,7 +3,7 @@ const { response, request } = require('express');
 const Bcryptjs = require('bcryptjs');
 const Autor = require('../database/autor');
 
-
+//Devuelve todos los autores 
 const autorGet = async (req = request, res = response) => {
 
     const { desde = 0, limite = 0 } = req.query;
@@ -22,12 +22,13 @@ const autorGet = async (req = request, res = response) => {
     })
 };
 
+//Devuelve todos los autores que esten relacionados con el usuario
 const autorGet_LosMios = async (req = request, res = response) => {
 
     const query = { usuario: req.usuario._id };
     const { desde = 0, limite = 0 } = req.query;
 
-
+    
     const [total, autores] = await Promise.all([
         Autor.countDocuments(query),
         Autor.find(query)
@@ -42,10 +43,12 @@ const autorGet_LosMios = async (req = request, res = response) => {
     })
 };
 
+//Devuelve el autor al que pertenece el id, en caso de que exista
 const autorGetUno = async (req = request, res = response) => {
 
     const { id } = req.params;
-
+    
+    //Compueba que existe el autor
     const autor = await Autor.findById(id);
     if (!autor) {
         return res.status(400).json({
@@ -60,12 +63,16 @@ const autorGetUno = async (req = request, res = response) => {
     })
 };
 
+//Insertar un nuevo autor a la base de datos, el autor va a estar 
+//relacionado con el usuario que lo inserto
 const autorPost = async (req = request, res = response) => {
 
     const { nombre, apellidos, correo, orcid } = req.body;
     const usuario = req.usuario._id;
     const autor = Autor({ nombre, apellidos, correo, orcid, usuario });
-
+    
+    //comprueba que el correo no exista en la base de datos, ya que 
+    //debe ser unico
     const existeEmail = await Autor.findOne({ correo });
     if (existeEmail) {
         return res.status(400).json({
@@ -83,6 +90,8 @@ const autorPost = async (req = request, res = response) => {
 
 };
 
+//Modifica un autor por el id, solo lo puede modificar el 
+//usuario que lo inserto 
 const autorPut = async (req = request, res = response) => {
 
     //resivir y estructural datos
@@ -91,7 +100,7 @@ const autorPut = async (req = request, res = response) => {
     const usuario = req.usuario._id;
     const { correo } = req.body;
 
-    //Verificar si el id existe
+    //Verificar si el autor existe
     const existeID = await Autor.findById(id);
     if (!existeID) {
         return res.status(400).json({
@@ -99,7 +108,8 @@ const autorPut = async (req = request, res = response) => {
             msg: 'EL id no existe'
         });
     }
-
+    
+    //Se comprueba que el autor le pertenece al usuario  
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({
             ok: false,
@@ -107,6 +117,8 @@ const autorPut = async (req = request, res = response) => {
         });
     }
 
+    //Se comprueba que el correo no este repetido en otro
+    //autor en la base de datos
     const existeEmail = await Autor.findOne({ correo });
     if (existeEmail && (existeEmail.correo != existeID.correo)) {
         return res.status(400).json({
@@ -114,7 +126,8 @@ const autorPut = async (req = request, res = response) => {
             msg: 'Ese correo ya esta registrado'
         });
     }
-
+    
+    //Se modifica el autor
     const autor = await Autor.findByIdAndUpdate(id, resto, { new: true });
 
     res.status(201).json({
@@ -124,12 +137,14 @@ const autorPut = async (req = request, res = response) => {
 
 };
 
+//Elima un autor por el id, solo eliminar si el autor
+//pertenece al usuario  
 const autorDelete = async (req = request, res = response) => {
 
     const { id } = req.params;
     const usuario = req.usuario._id;
 
-    //compruevo si el id existe
+    //compruevo si el autor existe
     const existeID = await Autor.findById(id);
     if (!existeID) {
         return res.status(400).json({
@@ -138,6 +153,7 @@ const autorDelete = async (req = request, res = response) => {
         });
     }
     
+    //Se comprueba que el autor le pertenece al usuario  
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({
             ok: false,
@@ -145,6 +161,7 @@ const autorDelete = async (req = request, res = response) => {
         });
     }
 
+    //Se elimina de la base de datos 
     const autor = await Autor.findByIdAndDelete(id);
 
     res.status(201).json({

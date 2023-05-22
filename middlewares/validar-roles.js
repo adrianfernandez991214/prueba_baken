@@ -1,5 +1,6 @@
 const { response } = require("express");
 
+//Se comprueba que sea Admin
 const esAdminRole = async (req, res = response, next) => {
 
     if (!req.usuario) {
@@ -20,6 +21,8 @@ const esAdminRole = async (req, res = response, next) => {
 
 }
 
+
+//Se comprueba que el rol enviado por la request, este entre los permitidos
 const tieneRole = (...roles) => {
     return (req, res = response, next) => {
 

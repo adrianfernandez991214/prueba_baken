@@ -1,6 +1,8 @@
 
 const { Schema, model } = require('mongoose');
 
+//Los usuarios poseen nombre, apellidos, correo(unico), possword, rol['ADMIN_ROLE', 'USER_ROLE'],
+//y el estado
 const UsuarioSchema = Schema({
     nombre: {
         type: String,

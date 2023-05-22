@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+//Configuración para usar mongoose
 const dbConnection = async () => {
 
     try {

@@ -1,5 +1,7 @@
 const { Schema, model } = require('mongoose');
 
+//Los libros poseen titulo, genero, año, el nombre del archivo, autor -> relacionado
+//por el id, y el usuario al que pertenece -> relaciondo por el id
 const LibreoSchema = Schema({
     titulo: {
         type: String,

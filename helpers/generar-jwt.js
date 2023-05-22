@@ -1,5 +1,6 @@
 const JWT = require('jsonwebtoken');
 
+//Permite generar el JWT usando el id del usuario
 const generarJWT = (uid = '') => {
 
     return new Promise((resolve, reject) => {

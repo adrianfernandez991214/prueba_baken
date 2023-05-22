@@ -1,12 +1,15 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const { response, request } = require('express');
 const Libro = require('../database/libro');
 const Autor = require('../database/autor');
 const { subirArchivo } = require('../helpers/subir-archivo');
 
+//Devuelve todos los libros
 const libroGet = async (req = request, res = response) => {
 
-    const { desde = 0, limite = 5 } = req.query;
+    const { desde = 0, limite = 0 } = req.query;
 
     const [total, libros] = await Promise.all([
         Libro.countDocuments(),
@@ -23,10 +26,11 @@ const libroGet = async (req = request, res = response) => {
     })
 };
 
+//Devuelve todos los libros relacionados con el usuario
 const libroGet_LosMios = async (req = request, res = response) => {
-    
+
     const query = { usuario: req.usuario._id };
-    const { desde = 0, limite = 5 } = req.query;
+    const { desde = 0, limite = 0 } = req.query;
 
     const [total, libros] = await Promise.all([
         Libro.countDocuments(query),
@@ -43,6 +47,7 @@ const libroGet_LosMios = async (req = request, res = response) => {
     })
 };
 
+//Devuelve un libro por el id
 const libroGetUno = async (req = request, res = response) => {
 
     const { id } = req.params;
@@ -61,12 +66,14 @@ const libroGetUno = async (req = request, res = response) => {
     })
 };
 
+//Se inserta un nuevo libro la base datos
 const libroPost = async (req = request, res = response) => {
 
     const { titulo, genero, anno, autor } = req.body;
     const usuario = req.usuario._id;
-    const libro = Libro({ titulo, genero, anno, autor, usuario });
+    let li = Libro({ titulo, genero, anno, autor, usuario });
 
+    //Se comprueba que exista el autor
     const existeAutor = await Autor.findById(autor);
     if (!existeAutor) {
         return res.status(400).json({
@@ -75,11 +82,13 @@ const libroPost = async (req = request, res = response) => {
         });
     }
 
-
+    //Se guarda el archivo 
     const nombre = await subirArchivo(req.files);
-    libro.archivo = nombre;
-
-    await libro.save();
+    li.archivo = nombre;
+    
+    //Se salva en la base de datos el libro
+    await li.save();
+    const libro = await Libro.findById(li._id).populate('autor', 'nombre apellidos');
 
     res.status(201).json({
         ok: true,
@@ -88,6 +97,8 @@ const libroPost = async (req = request, res = response) => {
 
 };
 
+//Modifica un libro por el id, solo lo puede modificar 
+//el usuario con el que este relacionado 
 const libroPut = async (req = request, res = response) => {
 
     //resivir y estructural datos
@@ -96,7 +107,7 @@ const libroPut = async (req = request, res = response) => {
     const usuario = req.usuario._id;
     const { autor } = req.body;
 
-    //Verificar si el id existe
+    //Se verifica si el libro existe
     const existeID = await Libro.findById(id);
     if (!existeID) {
         return res.status(400).json({
@@ -105,6 +116,7 @@ const libroPut = async (req = request, res = response) => {
         });
     }
 
+    //Se verifica si el autor existe
     const existeAutor = await Autor.findById(autor);
     if (!existeAutor) {
         return res.status(400).json({
@@ -113,6 +125,7 @@ const libroPut = async (req = request, res = response) => {
         });
     }
 
+    //Se compruena que el libro le pertenece al usuario
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({
             ok: false,
@@ -120,7 +133,8 @@ const libroPut = async (req = request, res = response) => {
         });
     }
 
-    const libro = await Libro.findByIdAndUpdate(id, resto, { new: true });
+    //Se modifica el libro
+    const libro = await Libro.findByIdAndUpdate(id, resto, { new: true }).populate('autor', 'nombre apellidos');
 
     res.status(201).json({
         ok: true,
@@ -129,12 +143,14 @@ const libroPut = async (req = request, res = response) => {
 
 };
 
+//Se elimina un libro por el id, solo puede ser eliminado por el 
+//usuario al que le pertenece
 const libroDelete = async (req = request, res = response) => {
 
     const { id } = req.params;
     const usuario = req.usuario._id;
 
-    //compruevo si el id existe
+    //Se comprueva si el libro existe
     const existeID = await Libro.findById(id);
     if (!existeID) {
         return res.status(400).json({
@@ -142,7 +158,8 @@ const libroDelete = async (req = request, res = response) => {
             msg: 'EL id no existe'
         });
     }
-
+    
+    //Se compruena que el libro le pertenece al usuario
     if (!usuario.equals(existeID.usuario)) {
         return res.status(400).json({
             ok: false,
@@ -150,7 +167,14 @@ const libroDelete = async (req = request, res = response) => {
         });
     }
 
+    //Se elimina el libro de la base de datos
     const libro = await Libro.findByIdAndDelete(id);
+
+    //Se elimina el archivo
+    const pathImagen = path.join(__dirname, '../uploads', libro.archivo);
+    if (fs.existsSync(pathImagen)) {
+        fs.unlinkSync(pathImagen);
+    }
 
     res.status(201).json({
         ok: true,
